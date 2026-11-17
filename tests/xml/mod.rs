@@ -20778,6 +20778,26 @@ mod flex {
 
 mod float {
     #[test]
+    fn float_after_margin_collapsed_through_parent__border_box_ltr() {
+        crate::run_xml_test("float", "float_after_margin_collapsed_through_parent__border_box_ltr");
+    }
+
+    #[test]
+    fn float_after_margin_collapsed_through_parent__content_box_ltr() {
+        crate::run_xml_test("float", "float_after_margin_collapsed_through_parent__content_box_ltr");
+    }
+
+    #[test]
+    fn float_after_margin_collapsed_through_parent__border_box_rtl() {
+        crate::run_xml_test("float", "float_after_margin_collapsed_through_parent__border_box_rtl");
+    }
+
+    #[test]
+    fn float_after_margin_collapsed_through_parent__content_box_rtl() {
+        crate::run_xml_test("float", "float_after_margin_collapsed_through_parent__content_box_rtl");
+    }
+
+    #[test]
     fn float_after_sibling_bottom_margin__border_box_ltr() {
         crate::run_xml_test("float", "float_after_sibling_bottom_margin__border_box_ltr");
     }
@@ -20855,6 +20875,26 @@ mod float {
     #[test]
     fn float_align_content_end_nested_float_in_child__content_box_rtl() {
         crate::run_xml_test("float", "float_align_content_end_nested_float_in_child__content_box_rtl");
+    }
+
+    #[test]
+    fn float_before_block_with_margin_collapsed_through_it__border_box_ltr() {
+        crate::run_xml_test("float", "float_before_block_with_margin_collapsed_through_it__border_box_ltr");
+    }
+
+    #[test]
+    fn float_before_block_with_margin_collapsed_through_it__content_box_ltr() {
+        crate::run_xml_test("float", "float_before_block_with_margin_collapsed_through_it__content_box_ltr");
+    }
+
+    #[test]
+    fn float_before_block_with_margin_collapsed_through_it__border_box_rtl() {
+        crate::run_xml_test("float", "float_before_block_with_margin_collapsed_through_it__border_box_rtl");
+    }
+
+    #[test]
+    fn float_before_block_with_margin_collapsed_through_it__content_box_rtl() {
+        crate::run_xml_test("float", "float_before_block_with_margin_collapsed_through_it__content_box_rtl");
     }
 
     #[test]

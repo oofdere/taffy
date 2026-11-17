@@ -1,0 +1,27 @@
+<test name="float_after_margin_collapsed_through_parent__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl" position="absolute" width="400px">
+      <div display="block" direction="rtl" position="relative">
+        <div display="block" direction="rtl" position="relative" height="20px" margin-top="100px">
+          <div display="block" direction="rtl" position="relative" float="right" width="50px" height="20px"/>
+        </div>
+        <div display="block" direction="rtl" position="relative" margin-top="80px">
+          <div display="block" direction="rtl" position="relative" float="right" width="50px" height="20px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="400" height="220">
+      <node x="0" y="100" width="400" height="20">
+        <node x="0" y="0" width="400" height="20">
+          <node x="350" y="0" width="50" height="20"/>
+        </node>
+        <node x="0" y="100" width="400" height="0">
+          <node x="350" y="0" width="50" height="20"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

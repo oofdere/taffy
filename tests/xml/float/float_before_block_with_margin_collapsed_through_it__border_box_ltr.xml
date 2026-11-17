@@ -1,0 +1,23 @@
+<test name="float_before_block_with_margin_collapsed_through_it__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr" position="absolute" width="400px">
+      <div display="block" direction="ltr" position="relative" float="right" width="300px" height="50px"/>
+      <div display="block" direction="ltr" position="relative">
+        <div display="block" direction="ltr" position="relative" margin-top="100px">
+          <div display="block" direction="ltr" position="relative" float="right" width="50px" height="20px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="400" height="120">
+      <node x="100" y="0" width="300" height="50"/>
+      <node x="0" y="100" width="400" height="0">
+        <node x="0" y="0" width="400" height="0">
+          <node x="350" y="0" width="50" height="20"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

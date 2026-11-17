@@ -64,6 +64,7 @@ impl BlockFormattingContext {
         BlockContext {
             bfc: self,
             y_offset: 0.0,
+            top_strut: None,
             insets: FloatInsets::ZERO,
             content_box_insets: FloatInsets::ZERO,
             float_content_contribution: f32::NEG_INFINITY,
@@ -96,6 +97,11 @@ pub struct BlockContext<'bfc> {
     /// The y-offset of the border-top of the block node, relative to the to the border-top of the
     /// root node of the Block Formatting Context it belongs to.
     y_offset: f32,
+    /// The margins collapsed into the strut above the block's border-top that `y_offset` includes,
+    /// while that strut is unresolved: the block's own top margin and those of preceding margins it
+    /// collapses with. Margins of the block's children that collapse through its top join the same
+    /// strut and move the block down. `None` when `y_offset` does not move with such margins.
+    top_strut: Option<CollapsibleMarginSet>,
     /// The x-inset of the border-box in from each side of the block node, relative to the root node of the Block Formatting Context it belongs to.
     insets: FloatInsets,
     /// The x-insets of the content box
@@ -125,6 +131,7 @@ impl BlockContext<'_> {
         BlockContext {
             bfc: self.bfc,
             y_offset: self.y_offset + additional_y_offset,
+            top_strut: None,
             insets,
             content_box_insets: insets,
             float_content_contribution: f32::NEG_INFINITY,
@@ -1598,10 +1605,21 @@ fn perform_final_layout_on_in_flow_children<Tree: LayoutBlockContainer>(
                 let insets = FloatInsets::new(inset_left, inset_right);
 
                 // Compute child layout. The child's position is estimated from its top margin collapsed with
-                // the preceding margins (the child's own collapsed-through margins are not yet known).
-                let estimated_y = committed_y_offset
-                    + active_collapsible_margin_set.collapse_with_margin(item_non_auto_margin.top).resolve();
+                // the preceding margins (the child's own collapsed-through margins are not yet known). Margins
+                // that collapse with the container's top join the strut above the container, which its
+                // position already includes in part.
+                let child_strut = active_collapsible_margin_set.collapse_with_margin(item_non_auto_margin.top);
+                let (estimated_y, child_strut) = match block_ctx.top_strut {
+                    Some(strut) if is_collapsing_with_first_margin_set && own_margins_collapse_with_children.start => {
+                        let joined = strut.collapse_with_set(child_strut);
+                        (committed_y_offset + joined.resolve() - strut.resolve(), joined)
+                    }
+                    _ => (committed_y_offset + child_strut.resolve(), child_strut),
+                };
                 let mut child_block_ctx = block_ctx.sub_context(estimated_y.max(clear_pos), insets);
+                if estimated_y >= clear_pos {
+                    child_block_ctx.top_strut = Some(child_strut);
+                }
                 let output = tree.compute_block_child_layout(item.node_id, inputs, Some(&mut child_block_ctx));
 
                 // Extract float contribution from child block context
@@ -1877,6 +1895,8 @@ fn perform_final_layout_on_in_flow_children<Tree: LayoutBlockContainer>(
                 ));
             }
 
+            let was_collapsing_with_first_margin_set = is_collapsing_with_first_margin_set;
+
             // Update first_child_top_margin_set
             //
             // The top margin of an item with clearance does not collapse with the container's top margin,
@@ -1897,6 +1917,19 @@ fn perform_final_layout_on_in_flow_children<Tree: LayoutBlockContainer>(
                 } else {
                     first_child_top_margin_set = first_child_top_margin_set.collapse_with_set(top_margin_set);
                     is_collapsing_with_first_margin_set = false;
+                }
+            }
+
+            // Once the margins that collapse through the container's top are known, the strut above it is
+            // resolved and the container is where those margins put it: the content after them is
+            // positioned against floats from there.
+            if was_collapsing_with_first_margin_set
+                && !is_collapsing_with_first_margin_set
+                && own_margins_collapse_with_children.start
+            {
+                if let Some(strut) = block_ctx.top_strut.take() {
+                    block_ctx.y_offset +=
+                        strut.collapse_with_set(first_child_top_margin_set).resolve() - strut.resolve();
                 }
             }
 
